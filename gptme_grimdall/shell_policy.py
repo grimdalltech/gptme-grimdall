@@ -214,8 +214,11 @@ def _analyze_shell(command: str) -> Optional[str]:
 
     if name == "rm":
         flags, targets = _partition(tokens[1:])
-        recursive = "r" in flags or "R" in flags or "--recursive" in flags
-        force = "f" in flags or "--force" in flags
+        # Case-insensitive flag matching: -rf / -fr / -Rf / -rF / -RF all
+        # count as recursive+force (re.IGNORECASE handles the R/F casing).
+        flag_blob = "".join(flags)
+        recursive = re.search(r"r", flag_blob, re.IGNORECASE) is not None
+        force = re.search(r"f", flag_blob, re.IGNORECASE) is not None
         if recursive or force:
             for t in targets:
                 if _is_dangerous_target(t):

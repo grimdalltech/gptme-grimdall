@@ -39,7 +39,7 @@ logger = logging.getLogger("gptme_grimdall")
 HOOK_NAME = "gptme_grimdall_tool_confirm"
 # Must exceed server_confirm (100) and cli/auto_confirm (0) so our deny
 # decision is consulted before any hook that would confirm execution.
-PRIORITY = 1000
+PRIORITY = 200
 
 _SHELL_TOOLS = frozenset({"shell"})
 _CODE_TOOLS = frozenset({"python", "ipython"})
@@ -65,11 +65,9 @@ def _content(tool_use: Any) -> str | None:
 
 
 def _extract_command(tool_use: Any) -> str | None:
-    kws = _kwargs(tool_use)
-    for key in ("command", "cmd", "code"):
-        val = kws.get(key)
-        if val:
-            return val
+    # gptme passes the shell command (and code blocks) via ``tool_use.content``,
+    # not ``tool_use.args``/``kwargs`` — see ``gptme.tools.base.ToolUse`` and
+    # ``gptme.tools.shell.get_shell_command``.
     return _content(tool_use)
 
 
