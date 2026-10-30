@@ -73,16 +73,22 @@ def is_secret_path(
     raw = path.replace(os.sep, "/")
     basename = normalized.rstrip("/").split("/")[-1]
 
+    # Case-insensitive matching: secret names are not case-sensitive in
+    # practice (e.g. ".ENV", "ID_RSA"), so treat them as a boundary to block.
     for pat in DEFAULT_PATH_PATTERNS:
         p = _norm_pattern(pat)
-        if fnmatch(normalized, p) or fnmatch(raw, pat):
+        if fnmatch(normalized.lower(), p.lower()) or fnmatch(raw.lower(), pat.lower()):
             return True
     for pat in DEFAULT_BASENAME_PATTERNS:
-        if fnmatch(basename, pat):
+        if fnmatch(basename.lower(), pat.lower()):
             return True
     for pat in extra_patterns:
         p = _norm_pattern(pat)
-        if fnmatch(normalized, p) or fnmatch(basename, p) or fnmatch(raw, pat):
+        if (
+            fnmatch(normalized.lower(), p.lower())
+            or fnmatch(basename.lower(), p.lower())
+            or fnmatch(raw.lower(), pat.lower())
+        ):
             return True
     return False
 
